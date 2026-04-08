@@ -1,74 +1,78 @@
-import React, { useState, memo } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, StyleSheet, Button, Animated } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 const Stack = createNativeStackNavigator();
 
-// Componente que renderiza sempre
-function FilhoLento() {
-  console.log('FilhoLento renderizou');
+function TelaAnimacao() {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateYAnim = useRef(new Animated.Value(50)).current;
 
-  return (
-    <View style={[styles.card, styles.cardLento]}>
-      <Text style={styles.tituloCard}>Filho Lento 🐢</Text>
-      <Text style={styles.textoCard}>
-        Esse componente renderiza toda vez que o pai atualiza.
-      </Text>
-    </View>
-  );
-}
+  const animar = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateYAnim, {
+        toValue: 0,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
-// Componente otimizado com React.memo
-const FilhoRapido = memo(function FilhoRapido() {
-  console.log('FilhoRapido renderizou');
-
-  return (
-    <View style={[styles.card, styles.cardRapido]}>
-      <Text style={styles.tituloCard}>Filho Rápido ⚡</Text>
-      <Text style={styles.textoCard}>
-        Esse componente renderiza apenas uma vez.
-      </Text>
-    </View>
-  );
-});
-
-// Tela principal
-function TelaPerformance() {
-  const [contador, setContador] = useState(0);
+  const resetar = () => {
+    fadeAnim.setValue(0);
+    translateYAnim.setValue(50);
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Teste de Performance 🚀</Text>
-      <Text style={styles.contador}>Contador do Pai: {contador}</Text>
+      <Text style={styles.titulo}>Animação com Fade + Subida 🚀</Text>
 
-      <Button
-        title="Incrementar Pai"
-        onPress={() => setContador(contador + 1)}
-      />
+      <Animated.View
+        style={[
+          styles.card,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: translateYAnim }],
+          },
+        ]}
+      >
+        <Text style={styles.cardTitulo}>Olá! Eu apareci ✨</Text>
+        <Text style={styles.cardTexto}>
+          Esse elemento sobe enquanto aparece na tela.
+        </Text>
+      </Animated.View>
 
-      <FilhoLento />
-      <FilhoRapido />
+      <View style={styles.botoes}>
+        <Button title="Animar" onPress={animar} />
+      </View>
+
+      <View style={styles.botoes}>
+        <Button title="Resetar" onPress={resetar} color="red" />
+      </View>
     </View>
   );
 }
 
-// App principal
 export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
-          name="TelaPerformance"
-          component={TelaPerformance}
-          options={{ title: 'Performance' }}
+          name="TelaAnimacao"
+          component={TelaAnimacao}
+          options={{ title: 'Animação' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
-// Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -78,40 +82,32 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   titulo: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 30,
     textAlign: 'center',
-  },
-  contador: {
-    fontSize: 22,
-    marginBottom: 20,
-    color: '#333',
   },
   card: {
     width: '100%',
     backgroundColor: '#fff',
-    padding: 20,
-    marginTop: 20,
+    padding: 25,
     borderRadius: 16,
-    elevation: 4,
+    elevation: 5,
+    marginBottom: 30,
   },
-  cardLento: {
-    borderLeftWidth: 6,
-    borderLeftColor: 'red',
-  },
-  cardRapido: {
-    borderLeftWidth: 6,
-    borderLeftColor: 'green',
-  },
-  tituloCard: {
+  cardTitulo: {
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#222',
   },
-  textoCard: {
+  cardTexto: {
     fontSize: 16,
-    color: '#444',
+    color: '#555',
     lineHeight: 22,
+  },
+  botoes: {
+    width: '100%',
+    marginBottom: 15,
   },
 });
